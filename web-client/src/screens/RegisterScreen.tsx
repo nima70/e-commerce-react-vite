@@ -13,15 +13,18 @@ import { useSelector } from "react-redux";
 import { RootState } from "@/store";
 import { useEffect } from "react";
 import AuthLayout from "@/components/AuthLayout";
-function LoginScreen() {
+import { toast } from "sonner";
+function RegisterScreen() {
   const dispatch = useDispatch();
   const search = useLocation();
   const navigate = useNavigate();
   const sp = new URLSearchParams(search.search);
   const redirect = sp.get("redirect") || "/";
   const userInfo = useSelector((state: RootState) => state.auth.userInfo);
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setconfirmPassword] = useState("");
   useEffect(() => {
     if (userInfo) {
       navigate(redirect);
@@ -29,13 +32,18 @@ function LoginScreen() {
   }, [navigate, redirect, userInfo]);
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (password !== confirmPassword) {
+      toast.error("Passwords do not match");
+      return;
+    }
     try {
       console.log("username:" + email);
       console.log("password:" + password);
       const res = await axios.post(
-        "http://localhost:3000/users/auth",
+        "http://localhost:3000/users",
         {
-          username: email,
+          name,
+          email,
           password,
         },
         { withCredentials: true }
@@ -47,12 +55,21 @@ function LoginScreen() {
       console.log(error);
     }
   };
-  const registerHandler = () => {
-    navigate("/register");
+  const loginHandler = () => {
+    navigate("/login");
   };
 
   return (
     <AuthLayout onSubmit={onSubmit} title="Sign In">
+      <div className="space-y-2">
+        <Label>Name</Label>
+        <Input
+          placeholder="email"
+          onChange={(e) => {
+            setName(e.target.value);
+          }}
+        />
+      </div>
       <div className="space-y-2">
         <Label>Email</Label>
         <Input
@@ -72,18 +89,28 @@ function LoginScreen() {
           }}
         ></Input>
       </div>
+      <div className="space-y-2">
+        <Label>Confirm Password</Label>
+        <Input
+          placeholder="confirm password"
+          type=" password"
+          onChange={(e) => {
+            setconfirmPassword(e.target.value);
+          }}
+        ></Input>
+      </div>
       <Button className="w-full" type="submit">
         Submit
       </Button>
       <Separator className="my-4" />
       <div className="flex items-center">
-        <span>New customer?</span>
-        <Button variant={"link"} onClick={registerHandler}>
-          Register
+        <span>Already have an account</span>
+        <Button variant={"link"} onClick={loginHandler}>
+          login
         </Button>
       </div>
     </AuthLayout>
   );
 }
 
-export default LoginScreen;
+export default RegisterScreen;
